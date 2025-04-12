@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Comfo Assistant</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    .question, .response {
+      margin-bottom: 1.5rem;
+    }
+    input, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Comfo!</h1>
+  <p>Comfo helps you improve your indoor thermal comfort and save energy with personalized advice.</p>
+
+  <div class="question">
+    <label>Postal Code: <input id="postal" /></label><br><br>
+    <label>Date (YYYY-MM-DD): <input id="date" /></label><br><br>
+    <label>Too Hot or Too Cold? <input id="discomfort" /></label><br><br>
+    <label>Tau value in minutes: <input id="tau" type="number" /></label><br><br>
+    <button onclick="runComfo()">Get Suggestions</button>
+  </div>
+
+  <div class="response" id="result"></div>
+
+  <script>
+    const suggestions = {
+      "summer-hot-fast": {
+        "Energy saving": [
+          "Open windows for cross-ventilation if the outdoor temp is lower.",
+          "Use ceiling or box fans instead of AC.",
+          "Close blinds to reduce solar heat gain."
+        ],
+        "Comfort": [
+          "Lower the thermostat by 1-2°C for a quick fix.",
+          "Turn on a fan to circulate air more effectively.",
+          "Place a bowl of ice in front of a fan for evaporative cooling."
+        ]
+      },
+      "summer-hot-medium": {
+        "Energy saving": [
+          "Open windows only if the external temperature is lower than inside.",
+          "Use a dehumidifier instead of AC.",
+          "Close blinds or curtains in sun-exposed areas."
+        ],
+        "Comfort": [
+          "Adjust thermostat by 1-2°C but expect it to take 30-45 minutes.",
+          "Use oscillating fans to circulate air.",
+          "Stay hydrated and apply cold compresses."
+        ]
+      },
+      "summer-hot-slow": {
+        "Energy saving": [
+          "Pre-cool the room early in the morning or late evening.",
+          "Use blackout curtains or shades.",
+          "Use fans to help distribute cooler air."
+        ],
+        "Comfort": [
+          "Lower the thermostat knowing it will take 1-2 hours to take effect.",
+          "Use portable fans and cooling devices.",
+          "Stay hydrated and avoid heat-generating activities."
+        ]
+      },
+      "summer-cold-fast": {
+        "Energy saving": [
+          "Ensure AC isn’t overcooling the space.",
+          "Use fans to circulate air without lowering the thermostat further."
+        ],
+        "Comfort": [
+          "Adjust thermostat up by 1-2°C.",
+          "Close windows if cool air is leaking in."
+        ]
+      },
+      "summer-cold-medium": {
+        "Energy saving": [
+          "Reduce cooling system use and rely on fans.",
+          "Set thermostat to a slightly higher temperature."
+        ],
+        "Comfort": [
+          "Turn the thermostat up gradually and check after 30-45 minutes.",
+          "Avoid cooling too aggressively."
+        ]
+      },
+      "summer-cold-slow": {
+        "Energy saving": [
+          "Keep cooling moderate to prevent excessive use.",
+          "Use fans for local cooling."
+        ],
+        "Comfort": [
+          "Be patient; avoid expecting rapid cooling.",
+          "Close off unneeded spaces to retain cool air."
+        ]
+      },
+      "winter-hot-fast": {
+        "Energy saving": [
+          "Turn down the thermostat and allow natural cooling.",
+          "Open windows for quick ventilation."
+        ],
+        "Comfort": [
+          "Reduce thermostat setting by 1-2°C.",
+          "Check if heating appliances are adding unnecessary heat.",
+          "Increase ventilation to balance the temperature."
+        ]
+      },
+      "winter-hot-medium": {
+        "Energy saving": [
+          "Lower the thermostat gradually by 1°C.",
+          "Ventilate briefly by opening windows."
+        ],
+        "Comfort": [
+          "Adjust the thermostat by 1-2°C.",
+          "Keep interior doors closed.",
+          "Check for unnecessary heat gains."
+        ]
+      },
+      "winter-hot-slow": {
+        "Energy saving": [
+          "Avoid large temperature swings.",
+          "Maintain a consistent lower setpoint."
+        ],
+        "Comfort": [
+          "Add extra layers or blankets.",
+          "Use space heaters for local comfort.",
+          "Block drafts with thick curtains."
+        ]
+      },
+      "winter-cold-fast": {
+        "Energy saving": [
+          "Use natural sunlight by opening blinds.",
+          "Close off unused rooms to retain warmth."
+        ],
+        "Comfort": [
+          "Adjust thermostat by 1-2°C for immediate heating.",
+          "Layer up with warm clothes and blankets."
+        ]
+      },
+      "winter-cold-medium": {
+        "Energy saving": [
+          "Set thermostat reasonably and allow time to heat.",
+          "Close blinds and curtains at night."
+        ],
+        "Comfort": [
+          "Use heated blankets or space heaters while warming.",
+          "Wear warm clothing."
+        ]
+      },
+      "winter-cold-slow": {
+        "Energy saving": [
+          "Use thermal curtains and insulate windows.",
+          "Keep interior doors closed."
+        ],
+        "Comfort": [
+          "Use warm clothing or heated blankets.",
+          "Use space heaters strategically."
+        ]
+      }
+    };
+
+    function getSeason(dateStr) {
+      const date = new Date(dateStr);
+      const year = date.getFullYear();
+      const summerStart = new Date(`${year}-04-01`);
+      const summerEnd = new Date(`${year}-10-31`);
+      return (date >= summerStart && date <= summerEnd) ? "summer" : "winter";
+    }
+
+    function getTauCategory(tau) {
+      if (tau < 300) return "fast";
+      if (tau < 900) return "medium";
+      return "slow";
+    }
+
+    function runComfo() {
+      const postal = document.getElementById("postal").value;
+      const date = document.getElementById("date").value;
+      const discomfort = document.getElementById("discomfort").value.toLowerCase();
+      const tau = parseInt(document.getElementById("tau").value);
+
+      const season = getSeason(date);
+      const tauCat = getTauCategory(tau);
+      const key = `${season}-${discomfort}-${tauCat}`;
+
+      const output = document.getElementById("result");
+      output.innerHTML = `<strong>Season:</strong> ${season}, <strong>Discomfort:</strong> ${discomfort}, <strong>Tau:</strong> ${tauCat}<br><br>`;
+
+      if (suggestions[key]) {
+        for (const [category, tips] of Object.entries(suggestions[key])) {
+          output.innerHTML += `<h3>${category} Tips:</h3><ul>` +
+            tips.map(tip => `<li>${tip}</li>`).join('') + '</ul>';
+        }
+      } else {
+        output.innerHTML += '<p>No suggestions found for this combination.</p>';
+      }
+    }
+  </script>
+</body>
+</html>
+
