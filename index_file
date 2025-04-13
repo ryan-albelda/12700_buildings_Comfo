@@ -126,12 +126,12 @@
       "winter-hot-slow": {
         "Energy saving": [
           "Avoid large temperature swings.",
-          "Maintain a consistent lower setpoint."
+          "Maintain a consistent lower setpoint.",
+          "Slightly open a window."
         ],
         "Comfort": [
-          "Add extra layers or blankets.",
-          "Use space heaters for local comfort.",
-          "Block drafts with thick curtains."
+          "Remove extra layers or blankets.",
+          "Allow for drafts and remove thick curtains or blinds."
         ]
       },
       "winter-cold-fast": {
