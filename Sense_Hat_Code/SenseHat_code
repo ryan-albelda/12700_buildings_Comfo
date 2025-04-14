@@ -1,0 +1,63 @@
+from sense_hat import SenseHat
+import time
+import csv
+import os
+
+# Initialize the SenseHat object
+sense = SenseHat()
+
+# Function to read CPU temperature
+def get_cpu_temperature():
+    try:
+        with open('/sys/class/thermal/thermal_zone0/temp', 'r') as f:
+            temp = int(f.read()) / 1000.0
+        return temp
+    except Exception as e:
+        print(f"Error reading CPU temperature: {e}")
+        return None
+
+# Function to calculate corrected temperature using calibration formula
+def get_corrected_temperature():
+    cpu_temp = get_cpu_temperature()
+    if cpu_temp is not None:
+        raw_temp = sense.get_temperature_from_humidity()
+        corrected_temp = raw_temp - 0.7 * (cpu_temp - raw_temp)
+        return corrected_temp, raw_temp, cpu_temp
+    else:
+        return None, None, None
+
+# Create a timestamped CSV file
+timestamp = time.strftime("%Y%m%d_%H%M%S")
+filename = f"/home/pi/temperature_data_{timestamp}.csv"
+
+with open(filename, mode='w', newline='') as file:
+    # Create a CSV writer object
+    writer = csv.writer(file)
+
+    # Write a header row to the CSV file
+    writer.writerow(["Timestamp", "Corrected Temperature (C)", "Raw Temperature (C)", "CPU Temperature (C)"])
+
+    print("Starting data collection for 1 minute...")
+    start_time = time.time()
+
+    # Collect data for 1 minute
+    while time.time() - start_time < 60:
+        # Get the corrected and raw temperatures
+        corrected_temp, raw_temp, cpu_temp = get_corrected_temperature()
+
+        # Get the current timestamp
+        current_timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+
+        if corrected_temp is not None:
+            # Print the results
+            print(f"{current_timestamp} - Corrected: {corrected_temp:.2f}°C | Raw: {raw_temp:.2f}°C | CPU: {cpu_temp:.2f}°C")
+
+            # Write the data to the CSV
+            writer.writerow([current_timestamp, corrected_temp, raw_temp, cpu_temp])
+        else:
+            print(f"{current_timestamp} - Error reading temperature data.")
+
+        time.sleep(1)
+
+# Notify when data collection is complete
+print(f"\nData collection complete. Data saved to {filename}.")
