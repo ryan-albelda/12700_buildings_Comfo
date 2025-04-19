@@ -1,116 +1,268 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Comfo Assistant</title>
-  <style>
-    body {
-      font-family: Arial , sans-serif;
-      padding: 2rem;
-      max-width: 700px;
-      margin: auto;
-    }
-    .question, .response {
-      margin-bottom: 1.5rem;
-    }
-    input, select, button {
-      padding: 0.5rem;
-      font-size: 1rem;
-    }
-  </style>
+    <meta charset="UTF-8"/>
+    <title>Comfo Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+            max-width: 700px;
+            margin: auto;
+        }
+
+        .question, .response {
+            margin-bottom: 1.5rem;
+        }
+
+        input, select, button {
+            padding: 0.5rem;
+            font-size: 1rem;
+        }
+    </style>
 </head>
 <body>
-  <h1>Welcome to Comfo!</h1>
-  <p>Comfo helps you improve your thermal comfort while minimizing carbon emissions.</p>
+<h1>Welcome to Comfo!</h1>
+<p>Comfo helps you improve your thermal comfort while minimizing carbon emissions.</p>
 
-  <div class="questions">
-    <label>City: <input id="city" /></label><br><br>
-    <label>Too Hot or Too Cold? <input id="discomfort" /></label><br><br>
-    <label>Tau value in minutes: <input id="tau" type="number" /></label><br><br>
+<div class="questions">
+    <label>City: <input id="city"/></label><br><br>
+    <label>Too Hot or Too Cold? <input id="discomfort"/></label><br><br>
+    <label>Tau value in minutes: <input id="tau" type="number"/></label><br><br>
     <button onclick="runComfo()">Get Suggestions</button>
-  </div>
+</div>
 
-    <br><br>
-  <div class="responses" id="result"></div>
+<br><br>
+<div class="responses" id="result"></div>
 
-  <script>
+<script>
     const dummySavings = {
-      "fan": { energy: 2.28, carbon: 0.75 },
-      "window": { energy: 2.4, carbon: 0.79 },
-      "AC": { energy: -2.4, carbon: -0.79 },
-      "space_heater": { energy: 1.5, carbon: 0.5 },
-      "heater": { energy: 3.0, carbon: 1.0 },
-      "none": { energy: 0, carbon: 0 }
+        "fan": {energy: 2.28, carbon: 0.75},
+        "window": {energy: 2.4, carbon: 0.79},
+        "AC": {energy: -2.4, carbon: -0.79},
+        "space_heater": {energy: 1.5, carbon: 0.5},
+        "heater": {energy: 3.0, carbon: 1.0},
+        "none": {energy: 0, carbon: 0}
     };
 
     const suggestions = {
-      "summer-hot-fast": {
-        "Energy saving": [
-          { action: "fan", baseline: "AC", description: "Use ceiling or box fans instead of AC." },
-          { action: "window", baseline: "AC", description: "Open windows for cross-ventilation." }
-        ],
-        "Comfort": [
-          { action: "AC", baseline: "fan", description: "Lower the thermostat by 1-2°C." },
-          { action: "fan", baseline: "none", description: "Place a bowl of ice in front of a fan." }
-        ]
-      },
-      "winter-cold-medium": {
-        "Energy saving": [
-          { action: "space_heater", baseline: "heater", description: "Use a space heater to warm just one room." }
-        ],
-        "Comfort": [
-          { action: "heater", baseline: "none", description: "Wear layers and use heated blankets." }
-        ]
-      }
-    };
+        "summer-hot-fast": {
+    "Energy saving": [
+      { action: "fan", baseline: "AC", description: "Use ceiling or box fans instead of AC." },
+      { action: "window", baseline: "AC", description: "Open windows for cross-ventilation." }
+    ],
+    "Comfort": [
+      { action: "AC", baseline: "fan", description: "Lower the thermostat by 1–2°C." },
+      { action: "fan", baseline: "none", description: "Place a bowl of ice in front of a fan." }
+    ]
+  },
+
+  "summer-hot-medium": {
+    "Energy saving": [
+      { action: "window", baseline: "AC", description: "Open windows only if the external temperature is lower than inside." },
+      { action: "none", baseline: "AC", description: "Close blinds or curtains in sun-exposed areas." },
+      { action: "none", baseline: "AC", description: "Shift to a reclining position to decrease metabolic rate." },
+      { action: "none", baseline: "AC", description: "Change into shorts to reduce wearable insulation." },
+      { action: "none", baseline: "fan", description: "Switch off heat-generating appliances like ovens or dishwashers." }
+    ],
+    "Comfort": [
+      { action: "AC", baseline: "fan", description: "Adjust thermostat by 1–2°C, expect results in 30–45 minutes." },
+      { action: "fan", baseline: "none", description: "Use oscillating fans to circulate air." },
+      { action: "none", baseline: "AC", description: "Stay hydrated and apply cold compresses." }
+    ]
+  },
+
+  "summer-hot-slow": {
+    "Energy saving": [
+      { action: "fan", baseline: "AC", description: "Pre-cool the room early in the morning or late evening using naturally cooler temperatures." },
+      { action: "none", baseline: "AC", description: "Use blackout curtains or shades to reduce solar gain." },
+      { action: "fan", baseline: "AC", description: "Use fans to help distribute cooler air more efficiently." },
+      { action: "none", baseline: "none", description: "Shift to a reclining position to decrease metabolic rate and lower body temperature." },
+      { action: "none", baseline: "none", description: "Change into shorts to reduce wearable insulation." },
+      { action: "none", baseline: "fan", description: "Switch off any heat-generating objects like ovens or dishwashers to limit internal heat gains." }
+    ],
+    "Comfort": [
+      { action: "AC", baseline: "AC", description: "Lower the thermostat knowing it will take 1–2 hours to take effect." },
+      { action: "fan", baseline: "AC", description: "Use portable fans and cooling devices for local comfort." },
+      { action: "none", baseline: "AC", description: "Stay hydrated and avoid heat-generating activities." }
+    ]
+  },
+
+  "summer-cold-fast": {
+    "Energy saving": [
+      { action: "none", baseline: "AC", description: "Ensure AC isn’t overcooling the space." },
+      { action: "window", baseline: "AC", description: "Open windows if the temperature outside is warmer than inside." },
+      { action: "none", baseline: "none", description: "Put on a thin sweater to increase wearable insulation." },
+      { action: "none", baseline: "none", description: "Move to a standing activity like cleaning to raise internal body temperature." }
+    ],
+    "Comfort": [
+      { action: "heater", baseline: "AC", description: "Adjust the thermostat up by 1–2°C." }
+    ]
+  },
+
+  "summer-cold-medium": {
+    "Energy saving": [
+      { action: "fan", baseline: "AC", description: "Reduce cooling system use and rely on fans." },
+      { action: "fan", baseline: "AC", description: "Open windows if the temperature outside is warmer than inside." },
+      { action: "heater", baseline: "AC", description: "Set the thermostat to a slightly higher temperature." },
+      { action: "none", baseline: "none", description: "Put on a regular sweater to increase wearable insulation." },
+      { action: "none", baseline: "none", description: "Move to a standing activity like cleaning to raise internal body temperature." }
+    ],
+    "Comfort": [
+      { action: "heater", baseline: "AC", description: "Turn the thermostat up gradually and check temperature after 30–45 minutes." },
+      { action: "AC", baseline: "AC", description: "Avoid cooling too aggressively to prevent discomfort." }
+    ]
+  },
+
+  "summer-cold-slow": {
+    "Energy saving": [
+      { action: "fan", baseline: "AC", description: "Keep cooling to a moderate level to prevent excessive use." },
+      { action: "fan", baseline: "AC", description: "Consider using fans for local cooling instead of AC." },
+      { action: "fan", baseline: "AC", description: "Use a dehumidifier instead of AC to improve comfort." },
+      { action: "none", baseline: "none", description: "Put on a thick sweater to increase wearable insulation." },
+      { action: "none", baseline: "fan", description: "Open doors to other spaces to help circulate the cold air." },
+      { action: "none", baseline: "none", description: "Move to a standing activity like cleaning to raise internal body temperature." }
+    ],
+    "Comfort": [
+      { action: "heater", baseline: "AC", description: "Be patient; avoid expecting rapid cooling." },
+      { action: "heater", baseline: "AC", description: "Turn the thermostat up and check the temperature after 1 hour." },
+      { action: "fan", baseline: "AC", description: "If it fits your schedule, run the dishwasher, laundry, or oven to benefit from heat-producing appliances." }
+    ]
+  },
+
+  "winter-hot-fast": {
+    "Energy saving": [
+      { action: "none", baseline: "heater", description: "Turn down the thermostat and allow natural cooling." },
+      { action: "window", baseline: "heater", description: "Open windows for quick ventilation." },
+      { action: "none", baseline: "none", description: "Put on a t-shirt instead of a long sleeve to decrease insulation." },
+      { action: "none", baseline: "none", description: "Shift to a reclining position to decrease metabolic rate." }
+    ],
+    "Comfort": [
+      { action: "AC", baseline: "heater", description: "Reduce thermostat setting by 1–2°C." },
+      { action: "fan", baseline: "none", description: "Check if heating appliances are adding unnecessary heat." },
+      { action: "none", baseline: "heater", description: "Increase ventilation to balance the temperature." }
+    ]
+  },
+
+  "winter-hot-medium": {
+    "Energy saving": [
+      { action: "space_heater", baseline: "heater", description: "Lower the thermostat gradually by 1°C for more efficient heating." },
+      { action: "window", baseline: "heater", description: "Ventilate briefly by opening windows for a short period." },
+      { action: "none", baseline: "heater", description: "Put on a t-shirt to reduce wearable insulation." }
+    ],
+    "Comfort": [
+      { action: "heater", baseline: "heater", description: "Adjust the thermostat by 1–2°C." },
+      { action: "none", baseline: "heater", description: "Open interior doors to circulate air within the space." },
+      { action: "fan", baseline: "heater", description: "Check for any unnecessary heat gains from appliances." }
+    ]
+  },
+
+  "winter-hot-slow": {
+    "Energy saving": [
+      { action: "none", baseline: "heater", description: "Avoid large temperature swings as it takes a long time to respond." },
+      { action: "none", baseline: "heater", description: "Maintain a consistent lower setpoint for better efficiency." },
+      { action: "none", baseline: "heater", description: "Put on a t-shirt and shorts to reduce wearable insulation." }
+    ],
+    "Comfort": [
+      { action: "AC", baseline: "heater", description: "Adjust the thermostat by 1–2°C." },
+      { action: "window", baseline: "heater", description: "Open interior doors to circulate air." },
+      { action: "fan", baseline: "heater", description: "Check for any unnecessary heat gains from appliances." }
+    ]
+  },
+
+  "winter-cold-fast": {
+    "Energy saving": [
+      { action: "none", baseline: "heater", description: "Use natural heat sources like sunlight by opening blinds." },
+      { action: "none", baseline: "heater", description: "Close off unused rooms to retain warmth." },
+      { action: "none", baseline: "heater", description: "Add a thin sweater to increase insulation." },
+      { action: "none", baseline: "heater", description: "Move to a standing activity like cleaning to raise metabolic rate." }
+    ],
+    "Comfort": [
+      { action: "heater", baseline: "heater", description: "Adjust the thermostat by 1–2°C for immediate heating." },
+      { action: "fan", baseline: "heater", description: "Layer up and use heated blankets for added warmth." }
+    ]
+  },
+
+  "winter-cold-medium": {
+    "Energy saving": [
+      { action: "fan", baseline: "heater", description: "Set the thermostat to a reasonable temperature and allow time for the space to heat up." },
+      { action: "none", baseline: "heater", description: "Close blinds and curtains at night to retain heat." },
+      { action: "none", baseline: "heater", description: "Add a regular sweater to increase insulation." },
+      { action: "none", baseline: "heater", description: "Move to a standing activity like cleaning to raise metabolic rate." }
+    ],
+    "Comfort": [
+      { action: "fan", baseline: "heater", description: "Use heated blankets or space heaters while waiting for warmth." },
+      { action: "space_heater", baseline: "heater", description: "Increase thermostat and wait for room to heat up." }
+    ]
+  },
+
+  "winter-cold-slow": {
+    "Energy saving": [
+      { action: "none", baseline: "heater", description: "Use thermal curtains and insulate windows to retain heat." },
+      { action: "window", baseline: "heater", description: "Keep interior doors closed to prevent cold air movement." },
+      { action: "none", baseline: "heater", description: "Add a thick sweater to increase insulation." },
+      { action: "none", baseline: "heater", description: "Move to a standing activity like cleaning to raise metabolic rate." }
+    ],
+    "Comfort": [
+      { action: "space_heater", baseline: "heater", description: "Use heated blankets or warm clothing." },
+      { action: "space_heater", baseline: "heater", description: "Position space heaters strategically for personal warmth." },
+      { action: "heater", baseline: "heater", description: "Increase thermostat to a higher temperature and wait for room to heat up." }
+    ]
+  }
+};
+
 
     function autoDetectSeason() {
-      const today = new Date();
-      const year = today.getFullYear();
-      const summerStart = new Date(`${year}-04-01`);
-      const summerEnd = new Date(`${year}-10-31`);
-      return (today >= summerStart && today <= summerEnd) ? "summer" : "winter";
+        const today = new Date();
+        const year = today.getFullYear();
+        const summerStart = new Date(`${year}-04-01`);
+        const summerEnd = new Date(`${year}-10-31`);
+        return (today >= summerStart && today <= summerEnd) ? "summer" : "winter";
     }
 
     function getTauCategory(tau) {
-      if (tau < 780) return "fast";
-      if (tau < 2820) return "medium";
-      return "slow";
+        if (tau < 780) return "fast";
+        if (tau < 2820) return "medium";
+        return "slow";
     }
 
-    
+
     function runComfo() {
-      const city = document.getElementById("city").value.toLowerCase();
-      const discomfort = document.getElementById("discomfort").value.toLowerCase();
-      const tau = parseInt(document.getElementById("tau").value);
+        const city = document.getElementById("city").value.toLowerCase();
+        const discomfort = document.getElementById("discomfort").value.toLowerCase();
+        const tau = parseInt(document.getElementById("tau").value);
 
-      const season = autoDetectSeason();
-      const tauCat = getTauCategory(tau);
-      const key = `${season}-${discomfort}-${tauCat}`;
-      const output = document.getElementById("result");
+        const season = autoDetectSeason();
+        const tauCat = getTauCategory(tau);
+        const key = `${season}-${discomfort}-${tauCat}`;
+        const output = document.getElementById("result");
 
-      output.innerHTML = `<strong>Season:</strong> ${season}, <strong>Discomfort:</strong> ${discomfort}, <strong>Tau:</strong> ${tauCat}<br><br>`;
+        output.innerHTML = `<strong>Season:</strong> ${season}, <strong>Discomfort:</strong> ${discomfort}, <strong>Tau:</strong> ${tauCat}<br><br>`;
 
-      if (suggestions[key]) {
-        for (const [category, tips] of Object.entries(suggestions[key])) {
-          output.innerHTML += `<h3>${category} Tips:</h3><ul>`;
-          tips.forEach(tip => {
-            const saving = dummySavings[tip.action];
-            const base = dummySavings[tip.baseline];
-            if (saving && base) {
-              const energy = (base.energy - saving.energy).toFixed(2);
-              const carbon = (base.carbon - saving.carbon).toFixed(2);
-              output.innerHTML += `<li>${tip.description} <em>(Save ${energy} kWh, ${carbon} kg CO₂)</em></li>`;
-            } else {
-              output.innerHTML += `<li>${tip.description} (Low carbon action)</li>`;
+        const costPerKWh = 0.25;
+
+        if (suggestions[key]) {
+            for (const [category, tips] of Object.entries(suggestions[key])) {
+                output.innerHTML += `<h3>${category} Tips:</h3><ul>`;
+                tips.forEach(tip => {
+                    const saving = dummySavings[tip.action];
+                    const base = dummySavings[tip.baseline];
+
+                    if (saving && base) {
+                        const energySaved = (base.energy - saving.energy).toFixed(2);
+                        const carbonSaved = (base.carbon - saving.carbon).toFixed(2);
+                        const costSaved = (energySaved * costPerKWh).toFixed(2);
+                        output.innerHTML += `<li>${tip.description} <em>(Save $${costSaved}, ${carbonSaved} kg CO₂)</em></li>`;
+                    } else {
+                        output.innerHTML += `<li>${tip.description} (Low carbon action)</li>`;
+                    }
+                });
+                output.innerHTML += `</ul>`;
             }
-          });
-          output.innerHTML += `</ul>`;
+        } else {
+            output.innerHTML += `<p>No suggestions found for this combination.</p>`;
         }
-      } else {
-        output.innerHTML += `<p>No suggestions found for this combination.</p>`;
-      }
     }
-  </script>
+</script>
 </body>
 </html>
